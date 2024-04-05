@@ -11,6 +11,7 @@ public class Bullet : MonoBehaviour
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
+        
     }
 
     private void OnTriggerEnter(Collider other)
@@ -26,6 +27,10 @@ public class Bullet : MonoBehaviour
             rb.angularVelocity = Vector3.zero;
             gameObject.SetActive(false);
             _gameManager.ValidBalls();
+
+         
+
+            // RequiredBallCount / .25f
         }
 
         else if (other.CompareTag("BottomObject"))

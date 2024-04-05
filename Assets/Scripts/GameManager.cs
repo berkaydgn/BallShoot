@@ -20,11 +20,13 @@ public class GameManager : MonoBehaviour
     public Animator HowitzerAnimator;
     public ParticleSystem ShotEfekt;
     public ParticleSystem[] BulletEffects;
-
+    [SerializeField] AudioSource[] BasketSounds;
+    int BasketSoundIndex;
+    [SerializeField] AudioSource[] OtherSounds;
 
     [Header("--------LEVEL SETTINGS")]
     [SerializeField] private int CurrentBallCount; 
-    [SerializeField] private int RequiredBallCount; 
+    [SerializeField] private int RequiredBallCount;      
     [SerializeField] private TextMeshProUGUI RemainderBallCountText;
     [SerializeField] private Slider CompletedBallSlider;
     private int ValidNumber;
@@ -35,19 +37,29 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI WinLevelText;
     public TextMeshProUGUI LoseLevelText;
 
+    [Header("--------UI SETTINGS")]
+    public Renderer BucketTransparent;
+    float BucketStartValue;
+    float BucketStepValue;
+
 
     void Start()
     {
         activeBulletIndex = 0;
+        BucketStartValue = .5f;
+        BucketStepValue = .25f / RequiredBallCount;
 
         CompletedBallSlider.maxValue = RequiredBallCount;
         RemainderBallCountText.text = CurrentBallCount.ToString();
+
+        //BucketTransparent.material.SetTextureScale("_MainTex", new Vector2(1f, .3f));
     }
 
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.T))
         {
+            OtherSounds[1].Play();
             HowitzerAnimator.Play("HowitzerShot");
             ShotEfekt.Play();
             CurrentBallCount--;
@@ -77,11 +89,20 @@ public class GameManager : MonoBehaviour
 
     public void ValidBalls()
     {
+        BasketSounds[BasketSoundIndex].Play();
+        BasketSoundIndex++;
+        if (BasketSoundIndex == BasketSounds.Length - 1)
+            BasketSoundIndex = 0;
+
         ValidNumber++;
         CompletedBallSlider.value = ValidNumber;
 
+        BucketStartValue -= BucketStepValue;
+        BucketTransparent.material.SetTextureScale("_MainTex", new Vector2(1f, BucketStartValue));
+
         if (ValidNumber == RequiredBallCount) //Win
         {
+            OtherSounds[2].Play();
             PlayerPrefs.SetInt("Level", SceneManager.GetActiveScene().buildIndex + 1);
             PlayerPrefs.SetInt("Coin", PlayerPrefs.GetInt("Coin") + 15);
             CoinText.text = PlayerPrefs.GetInt("Coin").ToString();
@@ -94,12 +115,14 @@ public class GameManager : MonoBehaviour
     {
         if (CurrentBallCount == 0) //Lose
         {
+            OtherSounds[3].Play();
             Panels[2].SetActive(true);
             LoseLevelText.text = "Level : " + SceneManager.GetActiveScene().name;
         }
         
         if ((ValidNumber + CurrentBallCount) < RequiredBallCount) //Lose
         {
+            OtherSounds[3].Play();
             Panels[2].SetActive(true);
             LoseLevelText.text = "Level : " + SceneManager.GetActiveScene().name;
         }
